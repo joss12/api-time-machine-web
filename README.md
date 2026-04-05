@@ -1,73 +1,79 @@
-# React + TypeScript + Vite
+# ⏳ API Time Machine
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+> The tool you probably need. An API time machine for testing, recording, and replaying your requests.
 
-Currently, two official plugins are available:
+Ever shipped a bug you couldn't reproduce? Ever said *"it worked on my machine"*?  
+API Time Machine records every request your app makes, lets you replay them in order, and shows you exactly what happened — method, headers, body, response, latency. All of it.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+---
 
-## React Compiler
+## What it does
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **Record** — point your requests through the proxy and everything gets captured automatically
+- **Replay** — re-fire an entire session at 0.5x, 1x, 2x, or 5x speed
+- **Inspect** — click any request to see full headers, body, and response
+- **Filter** — search by URL, method, or status code
+- **Export** — download your session as ready-to-run `curl` commands
+- **Share** — every session has a unique ID you can reference or share with teammates
 
-## Expanding the ESLint configuration
+---
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Stack
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+| Layer | Tech |
+|---|---|
+| Backend | Go + net/http |
+| Database | PostgreSQL |
+| Frontend | React + Vite + Tailwind CSS |
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+---
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Getting started locally
+
+### Requirements
+
+- Go 1.24+
+- Node.js + pnpm
+- PostgreSQL (local or any hosted provider)
+
+### Backend
+```bash
+cd server
+cp .env.example .env
+# Fill in your DATABASE_URL in .env
+go run cmd/api/main.go
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### Frontend
+```bash
+cd web
+pnpm install
+cp .env.example .env
+# Fill in your API URL in .env
+pnpm dev
 ```
+
+---
+
+## How to use it
+
+1. Create a session with a name and target base URL
+2. Copy the proxy URL
+3. Send your requests through the proxy instead of directly to your API
+4. Watch them appear in the timeline in real time
+5. Click any request to inspect it
+6. Hit Replay to re-fire the whole session
+
+---
+
+## Why I built this
+
+Debugging API issues is painful. Logs are scattered, curl commands get lost, and reproducing bugs in the exact order they happened is nearly impossible.
+
+API Time Machine gives you a DVR for your API traffic. Record once, replay forever.
+
+---
+
+## Environment variables
+
+### Backend (`server/.env`)

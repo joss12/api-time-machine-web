@@ -59,7 +59,7 @@ export default function Timeline({
   }, [session]);
 
   const fetchRequests = async () => {
-    if (!session || replayingRef.current) return;
+    if (!session) return;
     const res = await getSessionRequests(session.id);
     setRequests(res.data || []);
   };
@@ -78,7 +78,10 @@ export default function Timeline({
     setReplaying(true);
 
     replaySession(session.id, speed)
-      .then(() => fetchRequests())
+      .then(() => {
+        // Wait 2 seconds for backend to finish then refresh
+        setTimeout(() => fetchRequests(), 2000);
+      })
       .finally(() => {
         replayingRef.current = false;
         setReplaying(false);

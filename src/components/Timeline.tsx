@@ -16,6 +16,21 @@ const methodColors: Record<string, string> = {
   PATCH: "#b87fff",
 };
 
+const skipHeaders = new Set([
+  "accept-encoding",
+  "cdn-loop",
+  "cf-connecting-ip",
+  "cf-ipcountry",
+  "cf-ray",
+  "cf-visitor",
+  "render-proxy-ttl",
+  "rndr-id",
+  "true-client-ip",
+  "x-forwarded-for",
+  "x-forwarded-proto",
+  "x-request-start",
+]);
+
 export default function Timeline({
   session,
   onRequestSelect,
@@ -37,7 +52,6 @@ export default function Timeline({
       r.status_code.toString().includes(search),
   );
 
-  // Status code summary
   const summary = {
     ok: requests.filter((r) => r.status_code >= 200 && r.status_code < 300)
       .length,
@@ -47,7 +61,6 @@ export default function Timeline({
     error: requests.filter((r) => r.status_code >= 400).length,
   };
 
-  // Max latency for bar visualization
   const maxLatency = Math.max(...requests.map((r) => r.latency_ms), 1);
 
   useEffect(() => {
@@ -79,7 +92,6 @@ export default function Timeline({
 
     replaySession(session.id, speed)
       .then(() => {
-        // Wait 2 seconds for backend to finish then refresh
         setTimeout(() => fetchRequests(), 2000);
       })
       .finally(() => {
@@ -89,14 +101,16 @@ export default function Timeline({
   };
 
   const exportAsCurl = () => {
-    if (requests.length === 0) return;
     if (!session || requests.length === 0) return;
+
     const commands = requests
       .map((r) => {
         let cmd = `curl -X ${r.method} '${r.url}'`;
         if (r.headers) {
           Object.entries(r.headers).forEach(([k, v]) => {
-            cmd += ` \\\n  -H '${k}: ${v}'`;
+            if (!skipHeaders.has(k.toLowerCase())) {
+              cmd += ` \\\n  -H '${k}: ${v}'`;
+            }
           });
         }
         if (r.body) {
@@ -186,7 +200,7 @@ export default function Timeline({
           )}
           {summary.error > 0 && (
             <span className="text-[10px] text-[#ff4560]">
-              ❌ 4xx/5xx: {summary.error}
+              4xx/5xx: {summary.error}
             </span>
           )}
         </div>
@@ -230,30 +244,21 @@ export default function Timeline({
                   : ""
               }`}
             >
-              {/* Index */}
               <span className="text-[10px] text-[#4a6070] w-5 shrink-0">
                 {i + 1}
               </span>
-
-              {/* Method */}
               <span
                 className="text-[10px] font-bold w-12 shrink-0"
                 style={{ color: methodColors[r.method] || "#c8dde8" }}
               >
                 {r.method}
               </span>
-
-              {/* URL */}
               <span className="text-xs text-[#c8dde8] truncate flex-1">
                 {r.url}
               </span>
-
-              {/*Timestamp */}
               <span className="text-[10px] text-[#4a6070] w-16 text-right shrink-0">
                 {new Date(r.timestamp).toLocaleTimeString()}
               </span>
-
-              {/* Status */}
               <span
                 className={`text-[10px] font-bold w-8 text-right shrink-0 ${
                   r.status_code >= 400
@@ -265,8 +270,6 @@ export default function Timeline({
               >
                 {r.status_code}
               </span>
-
-              {/*Latency bar */}
               <div className="flex items-center gap-1 w-20 shrink-0">
                 <div className="flex-1 h-1 bg-[#1e2d3d] rounded overflow-hidden">
                   <div
